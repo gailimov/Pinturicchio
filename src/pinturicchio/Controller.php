@@ -20,11 +20,18 @@ use pinturicchio\http\Request;
 abstract class Controller
 {
     /**
-     * \pinturicchio\http\Request instance
+     * \pinturicchio\http\Request
      * 
      * @var \pinturicchio\http\Request
      */
     private $_request;
+    
+    /**
+     * \pinturicchio\Router
+     * 
+     * @var \pinturicchio\Router
+     */
+    private $_router;
     
     /**
      * View renderer object
@@ -41,6 +48,7 @@ abstract class Controller
     public function __construct(Request $request)
     {
         $this->_request = $request;
+        $this->_router = new Router();
     }
     
     /**
@@ -95,6 +103,35 @@ abstract class Controller
     public function getView()
     {
         return $this->_view;
+    }
+    
+    /**
+     * Creates relative URL
+     * 
+     * @see \pinturicchio\Router::createUrl()
+     * 
+     * @param  string $name   URL scheme name
+     * @param  array  $params Params
+     * @return string
+     */
+    public function createUrl($name, array $params = null)
+    {
+        return $this->_router->createUrl($name, $params);
+    }
+    
+    /**
+     * Creates absolute URL
+     * 
+     * @see \pinturicchio\Router::createAbsoluteUrl()
+     * 
+     * @param  string $name   URL scheme name
+     * @param  array  $params Params
+     * @param  bool   $https  Use HTTPS?
+     * @return string
+     */
+    public function createAbsoluteUrl($name, array $params = null, $https = false)
+    {
+        return $this->_router->createAbsoluteUrl($name, $params, $https);
     }
     
     /**

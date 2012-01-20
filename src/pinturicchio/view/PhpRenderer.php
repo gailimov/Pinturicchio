@@ -55,19 +55,18 @@ class PhpRenderer implements Renderer
      */
     private $_contentKey = 'content';
     
+    /**
+     * Key of the config
+     * 
+     * @var string
+     */
+    private $_configKey = 'views';
+    
     public function __construct()
     {
-        /** @TODO Вынести в отдельный метод (DRY) */
-        if (isset(Config::factory()->params['views']['directory']))
-            $this->setDirectory(Config::factory()->params['views']['directory']);
-        if (isset(Config::factory()->params['views']['fileExtension']))
-            $this->setFileExtension(Config::factory()->params['views']['fileExtension']);
-        if (isset(Config::factory()->params['views']['layoutDirectory']))
-            $this->setLayoutDirectory(Config::factory()->params['views']['layoutDirectory']);
-        if (isset(Config::factory()->params['views']['layout']))
-            $this->setLayout(Config::factory()->params['views']['layout']);
-        if (isset(Config::factory()->params['views']['contentKey']))
-            $this->setContentKey(Config::factory()->params['views']['contentKey']);
+        // Set the properties values from config
+        if (isset(Config::factory()->params[$this->_configKey]))
+            $this->setFromConfig(array_keys(Config::factory()->params[$this->_configKey]));
     }
     
     /**
@@ -237,5 +236,36 @@ class PhpRenderer implements Renderer
             $this->_layoutDirectory . '/' . $this->_layout,
             array($this->_contentKey => $content)
         );
+    }
+    
+    /**
+     * Sets property value from config
+     * 
+     * @param  array || string $property Array of properties or one preperty
+     * @return \pinturicchio\PhpRenderer
+     */
+    private function setFromConfig($property)
+    {
+        if (is_array($property)) {
+            for ($i = 0; $i < count($property); $i++)
+                $this->invokeSetter('set' . ucfirst((string) $property[$i]), (string) $property[$i]);
+        } else {
+            $this->invokeSetter('set' . ucfirst((string) $property), (string) $property);
+        }
+    }
+    
+    /**
+     * Invokes setter
+     * 
+     * @param  string $setter   Setter
+     * @param  string $property Property
+     * @return \pinturicchio\PhpRenderer
+     */
+    private function invokeSetter($setter, $property)
+    {
+        if (!in_array($setter, get_class_methods(__CLASS__)))
+            throw new Exception('Property "' . $property . '" not exists');
+        if (isset(Config::factory()->params[$this->_configKey][$property]))
+            $this->$setter(Config::factory()->params[$this->_configKey][$property]);
     }
 }
