@@ -35,7 +35,7 @@ class Router
     }
     
     /**
-     * Creates relative URL
+     * Creates URL
      * 
      * Using example:
      * 
@@ -46,54 +46,42 @@ class Router
      * 
      * $this->createUrl('greeting', array('name' => 'john'));
      * 
-     * Returns '/hello/john'
+     * Returns relative URL: '/hello/john'
      * 
      * If site located in subdirectory named 'subdir', then returns '/subdir/hello/john'
      * 
-     * @param  string $name   URL scheme name
-     * @param  array  $params Params
+     * $this->createUrl('greeting', array('name' => 'john'), true);
+     * 
+     * Returns absolute URL: 'http://example.com/hello/john'
+     * 
+     * If site located in subdirectory named 'subdir', then returns 'http://example.com/subdir/hello/john'
+     * 
+     * @param  string $name     URL scheme name
+     * @param  array  $params   Params
+     * @param  bool   $absolute URL should be absolute?
+     * @param  bool   $https    Use HTTPS?
      * @return string
      */
-    public function createUrl($name, array $params = null)
+    public function createUrl($name, array $params = null, $absolute = false, $https = false)
     {
         foreach (Config::factory()->params['urlScheme'] as $schemeName => $scheme) {
             if ($schemeName == $name) {
                 $scheme = $this->transform($scheme);
-                $url = preg_replace('/\([^\)]*\)/', '%s', $scheme['pattern']);
+                $replacement = ($params) ? '%s' : '';
+                /** @TODO: Пофиксить, чтобы заменялись только именованный параметры, с соотвествующим ключем в params */
+                $url = preg_replace('/\([^\)]*\)/', $replacement, $scheme['pattern']);
                 $url = str_replace('^', '', $url);
                 $url = str_replace('$', '', $url);
             }
         }
         
-        if ($params)
-            return $this->getBaseDirectory() . vsprintf($url, $params);
-        return $this->getBaseDirectory() . $url;
-    }
-    
-    /**
-     * Creates absolute URL
-     * 
-     * Using example:
-     * 
-     * 'urlScheme' => array(
-     *     'home' => array('^$', 'Site::index'),
-     *     'greeting' => array('^hello/(?P<name>[-_a-z0-9]+)$', 'Site::greet')
-     * )
-     * 
-     * $this->createAbsoluteUrl('greeting', array('name' => 'john'));
-     * 
-     * Returns 'http://example.com/hello/john'
-     * 
-     * If site located in subdirectory named 'subdir', then returns 'http://example.com/subdir/hello/john'
-     * 
-     * @param  string $name   URL scheme name
-     * @param  array  $params Params
-     * @param  bool   $https  Use HTTPS?
-     * @return string
-     */
-    public function createAbsoluteUrl($name, array $params = null, $https = false)
-    {
-        return $this->getHostInfo($https) . $this->createUrl($name, $params);
+        if (!$absolute) {        
+            if ($params)
+                return $this->getBaseDirectory() . vsprintf($url, $params);
+            return $this->getBaseDirectory() . $url;
+        } else {
+            return $this->getHostInfo($https) . $this->createUrl($name, $params);
+        }
     }
     
     /**

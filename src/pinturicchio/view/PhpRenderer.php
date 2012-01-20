@@ -70,6 +70,21 @@ class PhpRenderer implements Renderer
     }
     
     /**
+     * Invokes helper magically
+     * 
+     * @param  string $helper Helper name
+     * @param  array  $args   Argumants
+     * @return string Output result of helper
+     */
+    public function __call($helper, array $args)
+    {
+        $class = '\\pinturicchio\\view\\helpers\\' . ucfirst($helper);
+        if (!class_exists($class))
+            throw new Exception('View helper class "' . $class . '" not found');
+        return call_user_func_array(array($class, $helper), $args);
+    }
+    
+    /**
      * Sets directory
      * 
      * @param  string $directory Directory
