@@ -79,8 +79,9 @@ class PhpRenderer implements Renderer
     public function __call($helper, array $args)
     {
         $class = '\\pinturicchio\\view\\helpers\\' . ucfirst($helper);
-        if (!class_exists($class))
-            throw new Exception('View helper class "' . $class . '" not found');
+        $this->ensure(file_exists(Registry::get('rootPath') . str_replace('\\', '/', $class) . '.php'),
+                      'View helper class "' . $class . '" not found');
+        
         return call_user_func_array(array($class, $helper), $args);
     }
     
@@ -230,8 +231,7 @@ class PhpRenderer implements Renderer
         extract($params, EXTR_SKIP);
         ob_start();
         $file = Registry::get('appPath') . '/' . $this->_directory . '/' . $template . $this->_fileExtension;
-        if (!file_exists($file))
-            throw new Exception('View file "' . $file . '" not found');
+        $this->ensure(file_exists($file), 'View file "' . $file . '" not found');
         include_once $file;
         
         return ob_get_clean();
@@ -278,9 +278,21 @@ class PhpRenderer implements Renderer
      */
     private function invokeSetter($setter, $property)
     {
-        if (!in_array($setter, get_class_methods(__CLASS__)))
-            throw new Exception('Property "' . $property . '" not exists');
+        $this->ensure(in_array($setter, get_class_methods(__CLASS__)), 'Property "' . $property . '" not exists');
         if (isset(Config::factory()->params[$this->_configKey][$property]))
             $this->$setter(Config::factory()->params[$this->_configKey][$property]);
+    }
+    
+    /**
+     * Throws an exception if the expression is false
+     * 
+     * @param  mixed  $expr    Expression
+     * @param  string $message Error message
+     * @return void
+     */
+    private function ensure($expr, $message)
+    {
+        if (!$expr)
+            throw new Exception($message);
     }
 }
