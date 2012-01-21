@@ -22,6 +22,25 @@ use pinturicchio\http\Request,
 class FrontController
 {
     /**
+     * Alias separator
+     */
+    const ALIAS_SEPARATOR = '.';
+    
+    /**
+     * Singleton instance
+     *
+     * @var \pinturicchio\FrontController
+     */
+    private static $_instance;
+    
+    /**
+     * Router instance
+     * 
+     * @var \pinturicchio\Router
+     */
+    private $_router;
+    
+    /**
      * Controllers directory
      * 
      * @var string
@@ -40,14 +59,30 @@ class FrontController
      */
     private $_actionPostfix = 'Action';
     
-    public function __construct()
+    private function __construct()
     {
-        if (isset(Config::factory()->params['viewRenderer'])) {
-            $viewRenderer = Config::factory()->createClassNameFromAlias(Config::factory()->params['viewRenderer']);
+        if (isset(Config::getInstance()->params['viewRenderer'])) {
+            $viewRenderer = $this->createClassNameFromAlias(Config::getInstance()->params['viewRenderer']);
             $this->setViewRenderer(new $viewRenderer());
         } else {
             $this->_viewRenderer = new PhpRenderer();
         }
+    }
+    
+    private function __clone()
+    {
+    }
+    
+    /**
+     * Returns singleton instance
+     * 
+     * @return \pinturicchio\FrontController
+     */
+    public static function getInstance()
+    {
+        if (!self::$_instance)
+            self::$_instance = new self();
+        return self::$_instance;
     }
     
     /**
@@ -85,18 +120,40 @@ class FrontController
     }
     
     /**
+     * Returns router object
+     * 
+     * @return \pinturicchio\Router
+     */
+    public function getRouter()
+    {
+        if (!$this->_router)
+            $this->_router = new Router();
+        return $this->_router;
+    }
+    
+    /**
+     * Creates class name from alias
+     * 
+     * @param  string $alias Alias
+     * @return string
+     */
+    public function createClassNameFromAlias($alias)
+    {
+        return '\\' . str_replace(self::ALIAS_SEPARATOR, '\\', (string) $alias);
+    }
+    
+    /**
      * Dispatching
      * 
      * @return void
      */
     public function dispatch()
     {
-        $router = new Router();
-        $options = $router->run();
+        $options = $this->getRouter()->run();
         
         $class = '\\app\\' . $this->_controllersDirectory . '\\' . $options['controller'];
         
-        if (!class_exists($class))
+        if (!file_exists(Registry::get('rootPath') . str_replace('\\', '/', $class) . '.php'))
             throw new Exception('Controller class "' . $class . '" not found');
         
         $obj = new $class(new Request($options));
@@ -105,11 +162,12 @@ class FrontController
         
         $action = $options['action'] . $this->_actionPostfix;
         
-        if (!is_callable(array($obj, $action)))
+        if (!is_callable(array($obj, $action))) {
             if (Registry::get('debug'))
                 throw new Exception('Action "' . $class . '::' . $action . '" not found');
             else
                 throw new NotFoundException('404 Not Found');
+        }
         
         $obj->before();
         call_user_func(array($obj, $action));

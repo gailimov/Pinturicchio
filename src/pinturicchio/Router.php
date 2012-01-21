@@ -132,7 +132,7 @@ class Router
      */
     private function getActiveRoute($uri)
     {
-        foreach (Config::factory()->params['urlScheme'] as $name => $scheme) {
+        foreach (Config::getInstance()->params['urlScheme'] as $name => $scheme) {
             $scheme = $this->transform($scheme);
             if (preg_match('#' . $scheme['pattern'] . '#', $uri, $matches)) {
                 $this->_params = $_GET = array_merge(array_slice(array_unique($matches), 1), $_GET);

@@ -65,8 +65,8 @@ class PhpRenderer implements Renderer
     public function __construct()
     {
         // Set the properties values from config
-        if (isset(Config::factory()->params[$this->_configKey]))
-            $this->setFromConfig(array_keys(Config::factory()->params[$this->_configKey]));
+        if (isset(Config::getInstance()->params[$this->_configKey]))
+            $this->setFromConfig(array_keys(Config::getInstance()->params[$this->_configKey]));
     }
     
     /**

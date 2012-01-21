@@ -23,11 +23,6 @@ class Config
     const DEFAULT_CONFIG = 'main';
     
     /**
-     * Alias separator
-     */
-    const ALIAS_SEPARATOR = '.';
-    
-    /**
      * Params
      * 
      * @var array
@@ -40,6 +35,13 @@ class Config
      * @var string
      */
     private $_directory = 'config';
+    
+    /**
+     * Singleton instance
+     * 
+     * @var \pinturicchio\Config
+     */
+    private static $_instance;
     
     /**
      * Constructor
@@ -55,24 +57,15 @@ class Config
     }
     
     /**
-     * Returns new instance
+     * Returns singleton instance
      * 
      * @param  string $config Config file
      * @return \pinturicchio\Config
      */
-    public static function factory($config = self::DEFAULT_CONFIG)
+    public static function getInstance($config = self::DEFAULT_CONFIG)
     {
-        return new self((string) $config);
-    }
-    
-    /**
-     * Creates class name from alias
-     * 
-     * @param  string $alias Alias
-     * @return string
-     */
-    public function createClassNameFromAlias($alias)
-    {
-        return '\\' . str_replace(self::ALIAS_SEPARATOR, '\\', (string) $alias);
+        if (!self::$_instance)
+            self::$_instance = new self((string) $config);
+        return self::$_instance;
     }
 }

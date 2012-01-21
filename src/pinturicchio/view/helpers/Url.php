@@ -10,7 +10,7 @@
 
 namespace pinturicchio\view\helpers;
 
-use pinturicchio\Router;
+use pinturicchio\FrontController;
 
 /**
  * URL helper
@@ -32,7 +32,6 @@ class Url
      */
     public function url($name, array $params = null, $absolute = false, $https = false)
     {
-        $router = new Router();
-        return $router->createUrl($name, $params, $absolute, $https);
+        return FrontController::getInstance()->getRouter()->createUrl($name, $params, $absolute, $https);
     }
 }
