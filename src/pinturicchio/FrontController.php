@@ -27,6 +27,11 @@ class FrontController
     const ALIAS_SEPARATOR = '.';
     
     /**
+     * Action postfix
+     */
+    const ACTION_POSTFIX = 'Action';
+    
+    /**
      * Singleton instance
      *
      * @var \pinturicchio\FrontController
@@ -52,15 +57,11 @@ class FrontController
      */
     private $_viewRenderer;
     
-    /**
-     * Action postfix
-     * 
-     * @var string
-     */
-    private $_actionPostfix = 'Action';
-    
     private function __construct()
     {
+        if (isset(Config::getInstance()->params['controllersDirectory']))
+            $this->setControllersDirectory(Config::getInstance()->params['controllersDirectory']);
+        
         if (isset(Config::getInstance()->params['viewRenderer'])) {
             $viewRenderer = $this->createClassNameFromAlias(Config::getInstance()->params['viewRenderer']);
             $this->setViewRenderer(new $viewRenderer());
@@ -93,7 +94,9 @@ class FrontController
      */
     public function setControllersDirectory($directory)
     {
-        $this->_controllersDirectory = (string) $directory;
+        if (!is_dir(Registry::get('appPath') . '/' . (string) $directory))
+            throw new Exception('"' . $directory . '" is not a valid controllers directory');
+        $this->_controllersDirectory = $directory;
         return $this;
     }
     
@@ -117,6 +120,16 @@ class FrontController
     {
         $this->_viewRenderer = $viewRenderer;
         return $this;
+    }
+    
+    /**
+     * Returns view renderer object
+     * 
+     * @return \pinturicchio\view\Renderer
+     */
+    public function getViewRenderer()
+    {
+        return $this->_viewRenderer;
     }
     
     /**
@@ -151,16 +164,16 @@ class FrontController
     {
         $options = $this->getRouter()->run();
         
-        $class = '\\app\\' . $this->_controllersDirectory . '\\' . $options['controller'];
+        $class = '\\app\\' . $this->getControllersDirectory() . '\\' . $options['controller'];
         
         if (!file_exists(Registry::get('rootPath') . str_replace('\\', '/', $class) . '.php'))
             throw new Exception('Controller class "' . $class . '" not found');
         
         $obj = new $class(new Request($options));
         // Setting view renderer
-        $obj->setView($this->_viewRenderer);
+        $obj->setView($this->getViewRenderer());
         
-        $action = $options['action'] . $this->_actionPostfix;
+        $action = $options['action'] . self::ACTION_POSTFIX;
         
         if (!is_callable(array($obj, $action))) {
             if (Registry::get('debug'))

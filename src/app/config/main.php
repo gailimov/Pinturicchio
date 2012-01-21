@@ -1,6 +1,7 @@
 <?php
 
 return array(
+    //'controllersDirectory' => 'controllers',
     //'viewRenderer' => 'app.components.ViewRenderer',
     
     /*'views' => array(

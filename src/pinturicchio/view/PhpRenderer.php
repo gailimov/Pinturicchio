@@ -21,6 +21,11 @@ use pinturicchio\Config,
 class PhpRenderer implements Renderer
 {
     /**
+     * Key of the config
+     */
+    const CONFIG_KEY = 'views';
+    
+    /**
      * Directory
      * 
      * @var string
@@ -55,18 +60,11 @@ class PhpRenderer implements Renderer
      */
     private $_contentKey = 'content';
     
-    /**
-     * Key of the config
-     * 
-     * @var string
-     */
-    private $_configKey = 'views';
-    
     public function __construct()
     {
         // Set the properties values from config
-        if (isset(Config::getInstance()->params[$this->_configKey]))
-            $this->setFromConfig(array_keys(Config::getInstance()->params[$this->_configKey]));
+        if (isset(Config::getInstance()->params[self::CONFIG_KEY]))
+            $this->setFromConfig(array_keys(Config::getInstance()->params[self::CONFIG_KEY]));
     }
     
     /**
@@ -93,7 +91,9 @@ class PhpRenderer implements Renderer
      */
     public function setDirectory($directory)
     {
-        $this->_directory = (string) $directory;
+        $this->ensure(is_dir(Registry::get('appPath') . '/' . (string) $directory),
+                      '"' . $directory . '" is not a valid views directory');
+        $this->_directory = $directory;
         return $this;
     }
     
@@ -137,7 +137,9 @@ class PhpRenderer implements Renderer
      */
     public function setLayoutDirectory($directory)
     {
-        $this->_layoutDirectory = (string) $directory;
+        $this->ensure(is_dir(Registry::get('appPath') . '/' . $this->getDirectory() . '/' . (string) $directory),
+                      '"' . $directory . '" is not a valid layouts directory');
+        $this->_layoutDirectory = $directory;
         return $this;
     }
     
@@ -230,7 +232,7 @@ class PhpRenderer implements Renderer
     {
         extract($params, EXTR_SKIP);
         ob_start();
-        $file = Registry::get('appPath') . '/' . $this->_directory . '/' . $template . $this->_fileExtension;
+        $file = Registry::get('appPath') . '/' . $this->getDirectory() . '/' . $template . $this->getFileExtension();
         $this->ensure(file_exists($file), 'View file "' . $file . '" not found');
         include_once $file;
         
@@ -248,8 +250,8 @@ class PhpRenderer implements Renderer
     {
         $content = $this->fetchPartial($template, $params);
         return $this->fetchPartial(
-            $this->_layoutDirectory . '/' . $this->_layout,
-            array($this->_contentKey => $content)
+            $this->getLayoutDirectory() . '/' . $this->getLayout(),
+            array($this->getContentKey() => $content)
         );
     }
     
@@ -279,8 +281,8 @@ class PhpRenderer implements Renderer
     private function invokeSetter($setter, $property)
     {
         $this->ensure(in_array($setter, get_class_methods(__CLASS__)), 'Property "' . $property . '" not exists');
-        if (isset(Config::factory()->params[$this->_configKey][$property]))
-            $this->$setter(Config::factory()->params[$this->_configKey][$property]);
+        if (isset(Config::getInstance()->params[self::CONFIG_KEY][$property]))
+            $this->$setter(Config::getInstance()->params[self::CONFIG_KEY][$property]);
     }
     
     /**

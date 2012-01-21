@@ -9,10 +9,10 @@ use pinturicchio\Loader,
     pinturicchio\FrontController;
 
 $loader = new Loader();
-$loader->setPath(__DIR__ . '/../')
+$loader->setPath(__DIR__ . '/..')
        ->registerAutoload();
 
-Registry::set('rootPath', __DIR__ . '/../');
+Registry::set('rootPath', __DIR__ . '/..');
 Registry::set('appPath', Registry::get('rootPath') . '/app');
 
 // For enable debugging set value to true, otherwise set to false
