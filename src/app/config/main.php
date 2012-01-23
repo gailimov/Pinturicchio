@@ -5,7 +5,7 @@ return array(
     //'viewRenderer' => 'app.components.ViewRenderer',
     
     /*'views' => array(
-        'directory' => 'views',
+        'directory' => 'app.views',
         'layoutDirectory' => 'layouts',
         'layout' => 'main',
         'fileExtension' => '.php',

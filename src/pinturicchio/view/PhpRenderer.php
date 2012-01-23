@@ -10,9 +10,6 @@
 
 namespace pinturicchio\view;
 
-use pinturicchio\Config,
-    pinturicchio\Registry;
-
 /**
  * PHP renderer
  * 
@@ -20,11 +17,6 @@ use pinturicchio\Config,
  */
 class PhpRenderer implements Renderer
 {
-    /**
-     * Key of the config
-     */
-    const CONFIG_KEY = 'views';
-    
     /**
      * Directory
      * 
@@ -60,13 +52,6 @@ class PhpRenderer implements Renderer
      */
     private $_contentKey = 'content';
     
-    public function __construct()
-    {
-        // Set the properties values from config
-        if (isset(Config::getInstance()->params[self::CONFIG_KEY]))
-            $this->setFromConfig(array_keys(Config::getInstance()->params[self::CONFIG_KEY]));
-    }
-    
     /**
      * Invokes helper magically
      * 
@@ -77,10 +62,27 @@ class PhpRenderer implements Renderer
     public function __call($helper, array $args)
     {
         $class = '\\pinturicchio\\view\\helpers\\' . ucfirst($helper);
-        $this->ensure(file_exists(Registry::get('rootPath') . str_replace('\\', '/', $class) . '.php'),
+        $this->ensure(file_exists($this->getBasePath() . str_replace('\\', '/', $class) . '.php'),
                       'View helper class "' . $class . '" not found');
         
         return call_user_func_array(array($class, $helper), $args);
+    }
+    
+    /**
+     * Sets options
+     * 
+     * @param  array $options Options
+     * @return \pinturicchio\PhpRenderer
+     */
+    public function setOptions(array $options)
+    {
+        foreach ($options as $key => $value) {
+            $setter = 'set' . ucfirst($key);
+            $this->ensure(in_array($setter, get_class_methods(__CLASS__)), 'Property "' . $key . '" not exists');
+            $this->$setter($value);
+        }
+        
+        return $this;
     }
     
     /**
@@ -91,8 +93,7 @@ class PhpRenderer implements Renderer
      */
     public function setDirectory($directory)
     {
-        $this->ensure(is_dir(Registry::get('appPath') . '/' . (string) $directory),
-                      '"' . $directory . '" is not a valid views directory');
+        $this->ensure(is_dir((string) $directory), '"' . $directory . '" is not a valid views directory');
         $this->_directory = $directory;
         return $this;
     }
@@ -137,7 +138,7 @@ class PhpRenderer implements Renderer
      */
     public function setLayoutDirectory($directory)
     {
-        $this->ensure(is_dir(Registry::get('appPath') . '/' . $this->getDirectory() . '/' . (string) $directory),
+        $this->ensure(is_dir($this->getDirectory() . '/' . (string) $directory),
                       '"' . $directory . '" is not a valid layouts directory');
         $this->_layoutDirectory = $directory;
         return $this;
@@ -232,7 +233,7 @@ class PhpRenderer implements Renderer
     {
         extract($params, EXTR_SKIP);
         ob_start();
-        $file = Registry::get('appPath') . '/' . $this->getDirectory() . '/' . $template . $this->getFileExtension();
+        $file = $this->getDirectory() . '/' . $template . $this->getFileExtension();
         $this->ensure(file_exists($file), 'View file "' . $file . '" not found');
         include_once $file;
         
@@ -253,36 +254,6 @@ class PhpRenderer implements Renderer
             $this->getLayoutDirectory() . '/' . $this->getLayout(),
             array($this->getContentKey() => $content)
         );
-    }
-    
-    /**
-     * Sets property value from config
-     * 
-     * @param  array || string $property Array of properties or one preperty
-     * @return \pinturicchio\PhpRenderer
-     */
-    private function setFromConfig($property)
-    {
-        if (is_array($property)) {
-            for ($i = 0; $i < count($property); $i++)
-                $this->invokeSetter('set' . ucfirst((string) $property[$i]), (string) $property[$i]);
-        } else {
-            $this->invokeSetter('set' . ucfirst((string) $property), (string) $property);
-        }
-    }
-    
-    /**
-     * Invokes setter
-     * 
-     * @param  string $setter   Setter
-     * @param  string $property Property
-     * @return \pinturicchio\PhpRenderer
-     */
-    private function invokeSetter($setter, $property)
-    {
-        $this->ensure(in_array($setter, get_class_methods(__CLASS__)), 'Property "' . $property . '" not exists');
-        if (isset(Config::getInstance()->params[self::CONFIG_KEY][$property]))
-            $this->$setter(Config::getInstance()->params[self::CONFIG_KEY][$property]);
     }
     
     /**
