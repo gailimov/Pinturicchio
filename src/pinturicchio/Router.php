@@ -64,7 +64,7 @@ class Router
      */
     public function createUrl($name, array $params = null, $absolute = false, $https = false)
     {
-        foreach (Config::factory()->params['urlScheme'] as $schemeName => $scheme) {
+        foreach (Config::getInstance()->params['urlScheme'] as $schemeName => $scheme) {
             if ($schemeName == $name) {
                 $scheme = $this->transform($scheme);
                 $replacement = ($params) ? '%s' : '';

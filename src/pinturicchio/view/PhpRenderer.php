@@ -62,7 +62,7 @@ class PhpRenderer implements Renderer
     public function __call($helper, array $args)
     {
         $class = '\\pinturicchio\\view\\helpers\\' . ucfirst($helper);
-        $this->ensure(file_exists($this->getBasePath() . str_replace('\\', '/', $class) . '.php'),
+        $this->ensure(file_exists(__DIR__ . '/helpers/' . ucfirst($helper) . '.php'),
                       'View helper class "' . $class . '" not found');
         
         return call_user_func_array(array($class, $helper), $args);
