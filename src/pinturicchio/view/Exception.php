@@ -15,6 +15,6 @@ namespace pinturicchio\view;
  * 
  * @author Kanat Gailimov <gailimov@gmail.com>
  */
-class Exception extends \pinturicchio\Exception
+class Exception extends \Exception
 {
 }
