@@ -18,6 +18,13 @@ namespace pinturicchio;
 class Router
 {
     /**
+     * Routes
+     * 
+     * @var array
+     */
+    private $_routes = array();
+    
+    /**
      * Params
      * 
      * @var array
@@ -31,32 +38,65 @@ class Router
      */
     public function run()
     {
-        return $this->route($this->getActiveRoute($this->prepareUri()));
+        return $this->route($this->getActiveLogicalAction($this->prepareUri()));
+    }
+    
+    /**
+     * Adds route
+     * 
+     * Usage example:
+     * 
+     *     $router->addRoute('greeting', array('^hello/(?P<name>[-_a-z0-9]+)$', 'Site::greet'));
+     * 
+     * @param  string $name   Route scheme name
+     * @param  array  $scheme Route scheme
+     * @return \pinturicchio\Router
+     */
+    public function addRoute($name, array $scheme)
+    {
+        $this->_routes[$name] = $scheme;
+        return $this;
+    }
+    
+    /**
+     * Adds routes
+     * 
+     * Usage example:
+     * 
+     *     $router->addRoutes(array(
+     *         'home' => array('^$', 'Site::index'),
+     *         'greeting' => array('^hello/(?P<name>[-_a-z0-9]+)$', 'Site::greet')
+     *     ));
+     * 
+     * @param  array $routes Routes
+     * @return \pinturicchio\Router
+     */
+    public function addRoutes(array $routes)
+    {
+        foreach ($routes as $name => $scheme)
+            $this->addRoute($name, (array) $scheme);
+        return $this;
     }
     
     /**
      * Creates URL
      * 
-     * Using example:
+     * Usage example:
      * 
-     * 'urlScheme' => array(
-     *     'home' => array('^$', 'Site::index'),
-     *     'greeting' => array('^hello/(?P<name>[-_a-z0-9]+)$', 'Site::greet')
-     * )
+     *     'routes' => array(
+     *         'home' => array('^$', 'Site::index'),
+     *         'greeting' => array('^hello/(?P<name>[-_a-z0-9]+)$', 'Site::greet')
+     *     )
      * 
-     * $this->createUrl('greeting', array('name' => 'john'));
+     *     // Returns relative URL: '/hello/john'
+     *     // If site located in subdirectory named 'subdir', then returns '/subdir/hello/john'
+     *     $this->createUrl('greeting', array('name' => 'john'));
      * 
-     * Returns relative URL: '/hello/john'
+     *     // Returns absolute URL: 'http://example.com/hello/john'
+     *     // If site located in subdirectory named 'subdir', then returns 'http://example.com/subdir/hello/john'
+     *     $this->createUrl('greeting', array('name' => 'john'), true);
      * 
-     * If site located in subdirectory named 'subdir', then returns '/subdir/hello/john'
-     * 
-     * $this->createUrl('greeting', array('name' => 'john'), true);
-     * 
-     * Returns absolute URL: 'http://example.com/hello/john'
-     * 
-     * If site located in subdirectory named 'subdir', then returns 'http://example.com/subdir/hello/john'
-     * 
-     * @param  string $name     URL scheme name
+     * @param  string $name     Route scheme name
      * @param  array  $params   Params
      * @param  bool   $absolute URL should be absolute?
      * @param  bool   $https    Use HTTPS?
@@ -64,7 +104,7 @@ class Router
      */
     public function createUrl($name, array $params = null, $absolute = false, $https = false)
     {
-        foreach (Config::getInstance()->params['urlScheme'] as $schemeName => $scheme) {
+        foreach ($this->_routes as $schemeName => $scheme) {
             if ($schemeName == $name) {
                 $scheme = $this->transform($scheme);
                 $replacement = ($params) ? '%s' : '';
@@ -125,18 +165,18 @@ class Router
     }
     
     /**
-     * Returns active route comparing it with URI
+     * Returns active "logical action name" comparing it with URI
      * 
      * @param  string $uri URI
      * @return string
      */
-    private function getActiveRoute($uri)
+    private function getActiveLogicalAction($uri)
     {
-        foreach (Config::getInstance()->params['urlScheme'] as $name => $scheme) {
+        foreach ($this->_routes as $name => $scheme) {
             $scheme = $this->transform($scheme);
             if (preg_match('#' . $scheme['pattern'] . '#', $uri, $matches)) {
                 $this->_params = $_GET = array_merge(array_slice(array_unique($matches), 1), $_GET);
-                return $scheme['route'];
+                return $scheme['logicalAction'];
             }
         }
         
@@ -145,28 +185,26 @@ class Router
     }
     
     /**
-     * Transforms an array of URL schema into associative
+     * Transforms an array of route scheme into associative
      * 
      * Example:
      * 
-     * $scheme = $this->transform(array('^hello/(?P<name>[-_a-z0-9]+)$', 'Site::greet'));
-     * print_r($scheme);
+     *     $scheme = $this->transform(array('^hello/(?P<name>[-_a-z0-9]+)$', 'Site::greet'));
+     *     // Output:
+     *     // array(
+     *     //     'pattern' => '^hello/(?P<name>[-_a-z0-9]+)$',
+     *     //     'logicalAction' => 'Site::greet'
+     *     // )
+     *     print_r($scheme);
      * 
-     * Output:
-     * 
-     * array(
-     *     'pattern' => '^hello/(?P<name>[-_a-z0-9]+)$',
-     *     'route' => 'Site::greet'
-     * )
-     * 
-     * @param  array $scheme URL scheme
+     * @param  array $scheme Route scheme
      * @return array
      */
     private function transform(array $scheme)
     {
         return array(
             'pattern' => $scheme[0],
-            'route' => $scheme[1]
+            'logicalAction' => $scheme[1]
         );
     }
     
@@ -175,15 +213,15 @@ class Router
      * 
      * Returns an array with controller, action and params
      * 
-     * @param  string $route Route
+     * @param  string $logicalAction "Logical action name"
      * @return array
      */
-    private function route($route)
+    private function route($logicalAction)
     {
-        $route = explode('::', $route);
+        $logicalAction = explode('::', $logicalAction);
         return array(
-            'controller' => $route[0],
-            'action' => $route[1],
+            'controller' => $logicalAction[0],
+            'action' => $logicalAction[1],
             'params' => $this->_params
         );
     }

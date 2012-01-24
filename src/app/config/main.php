@@ -12,7 +12,7 @@ return array(
         'contentKey' => 'content'
     ),*/
     
-    'urlScheme' => array(
+    'routes' => array(
         'home' => array('^$', 'Site::index'),
         'greeting' => array('^hello/(?P<name>[-_a-z0-9]+)$', 'Site::greet')
     )

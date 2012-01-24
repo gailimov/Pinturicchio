@@ -227,7 +227,7 @@ class FrontController
      */
     public function dispatch()
     {
-        $options = $this->getRouter()->run();
+        $options = $this->getRouter()->addRoutes(Config::getInstance()->params['routes'])->run();
         
         $class = '\\app\\' . $this->getControllersDirectory() . '\\' . $options['controller'];
         
