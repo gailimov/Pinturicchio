@@ -50,7 +50,7 @@ class Config
      */
     private function __construct($config)
     {
-        $file = Registry::get('appPath') . '/' . $this->_directory . '/' . $config . '.php';
+        $file = FrontController::getInstance()->config['basePath'] . '/' . $this->_directory . '/' . $config . '.php';
         if (!file_exists($file))
             throw new Exception('Config file "' . $file . '" not found');
         $this->params = require $file;

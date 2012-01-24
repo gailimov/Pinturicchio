@@ -10,7 +10,8 @@
 
 namespace pinturicchio;
 
-use pinturicchio\http\Request,
+use pinturicchio\Loader,
+    pinturicchio\http\Request,
     pinturicchio\view\Renderer,
     pinturicchio\view\PhpRenderer;
 
@@ -35,6 +36,13 @@ class FrontController
      * Key of the views config
      */
     const CONFIG_VIEWS_KEY = 'views';
+    
+    /**
+     * Config
+     * 
+     * @var array
+     */
+    public $config = array();
     
     /**
      * Singleton instance
@@ -69,12 +77,24 @@ class FrontController
      */
     private $_viewRenderer;
     
-    private function __construct()
+    /**
+     * Constructor
+     * 
+     * @param string $config Path to config file
+     */
+    private function __construct($config = null)
     {
-        $this->_aliases['app'] = Registry::get('appPath');
+        if (!is_file($config))
+            throw new Exception($config . ' is not a valid config file');
+        $this->config = require_once $config;
         
-        if (isset(Config::getInstance()->params['controllersDirectory']))
-            $this->setControllersDirectory(Config::getInstance()->params['controllersDirectory']);
+        // Initialization of loader
+        $this->initLoader();
+        
+        $this->_aliases['app'] = $this->config['basePath'];
+        
+        if (isset($this->config['controllersDirectory']))
+            $this->setControllersDirectory($this->config['controllersDirectory']);
         
         // Initialization of view
         $this->initView();
@@ -87,13 +107,27 @@ class FrontController
     /**
      * Returns singleton instance
      * 
+     * @param  string $config Path to config file
      * @return \pinturicchio\FrontController
      */
-    public static function getInstance()
+    public static function getInstance($config = null)
     {
         if (!self::$_instance)
-            self::$_instance = new self();
+            self::$_instance = new self($config);
         return self::$_instance;
+    }
+    
+    /**
+     * Initializes loader
+     * 
+     * @return void
+     */
+    public function initLoader()
+    {
+        require_once __DIR__ . '/Loader.php';
+        $loader = new Loader();
+        $loader->setPath(__DIR__ . '/..')
+               ->registerAutoload();
     }
     
     /**
@@ -104,7 +138,7 @@ class FrontController
      */
     public function setControllersDirectory($directory)
     {
-        if (!is_dir(Registry::get('appPath') . '/' . (string) $directory))
+        if (!is_dir($this->config['basePath'] . '/' . (string) $directory))
             throw new Exception('"' . $directory . '" is not a valid controllers directory');
         $this->_controllersDirectory = $directory;
         return $this;
@@ -192,25 +226,25 @@ class FrontController
      */
     public function initView()
     {
-        if (isset(Config::getInstance()->params['viewRenderer'])) {
-            $viewRenderer = $this->createClassNameFromAlias(Config::getInstance()->params['viewRenderer']);
+        if (isset($this->config['viewRenderer'])) {
+            $viewRenderer = $this->createClassNameFromAlias($this->config['viewRenderer']);
             $this->setViewRenderer(new $viewRenderer());
         } else {
             $this->setViewRenderer(new PhpRenderer());
             // Set the properties values from config if it's exists, otherwise set default values
-            if (isset(Config::getInstance()->params[self::CONFIG_VIEWS_KEY])) {
-                $config = Config::getInstance()->params[self::CONFIG_VIEWS_KEY];
+            if (isset($this->config[self::CONFIG_VIEWS_KEY])) {
+                $config = $this->config[self::CONFIG_VIEWS_KEY];
                 if (isset($config['directory']))
                     $config['directory'] = $this->getPathOfAlias($config['directory']);
                 else
-                    $config['directory'] = Registry::get('appPath') . '/views';
+                    $config['directory'] = $this->config['basePath'] . '/views';
                 // For moving 'directory' before 'layoutsDirectory'. Yes, it's sucks
                 /** @TODO Think of something better */
                 asort($config);
                 $this->setOptions($this->getViewRenderer(), $config);
             } else {
                 $this->getViewRenderer()->setOptions(array(
-                    'directory' => Registry::get('appPath') . '/views',
+                    'directory' => $this->config['basePath'] . '/views',
                     'layoutDirectory' => 'layouts',
                     'layout' => 'main',
                     'fileExtension' => '.php',
@@ -227,11 +261,11 @@ class FrontController
      */
     public function dispatch()
     {
-        $options = $this->getRouter()->run();
+        $options = $this->getRouter()->addUrlSheme($this->config['urlScheme'])->run();
         
         $class = '\\app\\' . $this->getControllersDirectory() . '\\' . $options['controller'];
         
-        if (!file_exists(Registry::get('rootPath') . str_replace('\\', '/', $class) . '.php'))
+        if (!file_exists($this->config['basePath'] . '/' . $this->getControllersDirectory() . '/' . $options['controller'] . '.php'))
             throw new Exception('Controller class "' . $class . '" not found');
         
         $obj = new $class(new Request($options));

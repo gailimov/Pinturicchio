@@ -1,6 +1,7 @@
 <?php
 
 return array(
+    'basePath' => __DIR__ . '/..',
     //'controllersDirectory' => 'controllers',
     //'viewRenderer' => 'app.components.ViewRenderer',
     

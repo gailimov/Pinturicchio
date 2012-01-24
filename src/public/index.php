@@ -2,20 +2,9 @@
 
 error_reporting(E_ALL);
 
-require_once __DIR__ . '/../pinturicchio/Loader.php';
+// Change the following paths if necessary
+$pinturicchio = __DIR__ . '/../pinturicchio/FrontController.php';
+$config = __DIR__ . '/../app/config/main.php';
 
-use pinturicchio\Loader,
-    pinturicchio\Registry,
-    pinturicchio\FrontController;
-
-$loader = new Loader();
-$loader->setPath(__DIR__ . '/..')
-       ->registerAutoload();
-
-Registry::set('rootPath', __DIR__ . '/..');
-Registry::set('appPath', Registry::get('rootPath') . '/app');
-
-// For enable debugging set value to true, otherwise set to false
-Registry::set('debug', true);
-
-FrontController::getInstance()->dispatch();
+require_once $pinturicchio;
+\pinturicchio\FrontController::getInstance($config)->dispatch();

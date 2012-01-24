@@ -18,6 +18,13 @@ namespace pinturicchio;
 class Router
 {
     /**
+     * URL scheme
+     * 
+     * @var array
+     */
+    private $_urlScheme = array();
+    
+    /**
      * Params
      * 
      * @var array
@@ -32,6 +39,19 @@ class Router
     public function run()
     {
         return $this->route($this->getActiveRoute($this->prepareUri()));
+    }
+    
+    /**
+     * Adds URL scheme
+     * 
+     * @param  array $scheme Scheme
+     * @return \pinturicchio\Router
+     */
+    public function addUrlSheme(array $urlScheme)
+    {
+        foreach ($urlScheme as $name => $scheme)
+            $this->_urlScheme[$name] = $scheme;
+        return $this;
     }
     
     /**
@@ -64,7 +84,7 @@ class Router
      */
     public function createUrl($name, array $params = null, $absolute = false, $https = false)
     {
-        foreach (Config::getInstance()->params['urlScheme'] as $schemeName => $scheme) {
+        foreach ($this->_urlScheme as $schemeName => $scheme) {
             if ($schemeName == $name) {
                 $scheme = $this->transform($scheme);
                 $replacement = ($params) ? '%s' : '';
@@ -132,7 +152,7 @@ class Router
      */
     private function getActiveRoute($uri)
     {
-        foreach (Config::getInstance()->params['urlScheme'] as $name => $scheme) {
+        foreach ($this->_urlScheme as $name => $scheme) {
             $scheme = $this->transform($scheme);
             if (preg_match('#' . $scheme['pattern'] . '#', $uri, $matches)) {
                 $this->_params = $_GET = array_merge(array_slice(array_unique($matches), 1), $_GET);
