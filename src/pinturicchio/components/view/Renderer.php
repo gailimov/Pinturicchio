@@ -8,7 +8,7 @@
  */
 
 
-namespace pinturicchio\view;
+namespace pinturicchio\components\view;
 
 /**
  * Interface for renderers

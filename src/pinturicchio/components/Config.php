@@ -8,7 +8,7 @@
  */
 
 
-namespace pinturicchio;
+namespace pinturicchio\components;
 
 /**
  * Config

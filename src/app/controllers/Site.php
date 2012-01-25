@@ -2,7 +2,7 @@
 
 namespace app\controllers;
 
-class Site extends \pinturicchio\Controller
+class Site extends \pinturicchio\system\Controller
 {
     public function before()
     {

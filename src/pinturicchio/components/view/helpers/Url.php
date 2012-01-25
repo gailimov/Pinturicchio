@@ -8,9 +8,9 @@
  */
 
 
-namespace pinturicchio\view\helpers;
+namespace pinturicchio\components\view\helpers;
 
-use pinturicchio\FrontController;
+use pinturicchio\system\FrontController;
 
 /**
  * URL helper
@@ -22,7 +22,7 @@ class Url
     /**
      * Creates URL
      * 
-     * @see \pinturicchio\Router::createUrl()
+     * @see \pinturicchio\components\Router::createUrl()
      * 
      * @param  string $name     URL scheme name
      * @param  array  $params   Params

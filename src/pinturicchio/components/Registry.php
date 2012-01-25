@@ -8,7 +8,7 @@
  */
 
 
-namespace pinturicchio;
+namespace pinturicchio\components;
 
 /**
  * Registry
@@ -20,7 +20,7 @@ class Registry
     /**
      * Singleton instance
      * 
-     * @var \pinturicchio\Registry
+     * @var \pinturicchio\components\Registry
      */
     private static $_instance;
     
@@ -67,7 +67,7 @@ class Registry
     /**
      * Returns singleton instance
      * 
-     * @return \pinturicchio\Registry
+     * @return \pinturicchio\components\Registry
      */
     private static function getInstance()
     {

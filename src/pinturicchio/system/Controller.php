@@ -8,9 +8,9 @@
  */
 
 
-namespace pinturicchio;
+namespace pinturicchio\system;
 
-use pinturicchio\http\Request;
+use pinturicchio\system\http\Request;
 
 /**
  * Base controller
@@ -22,7 +22,7 @@ abstract class Controller
     /**
      * \pinturicchio\http\Request
      * 
-     * @var \pinturicchio\http\Request
+     * @var \pinturicchio\system\http\Request
      */
     private $_request;
     
@@ -36,7 +36,7 @@ abstract class Controller
     /**
      * Constructor
      * 
-     * @param \pinturicchio\http\Request $request Request object
+     * @param \pinturicchio\system\http\Request $request Request object
      */
     public function __construct(Request $request)
     {
@@ -68,7 +68,7 @@ abstract class Controller
     /**
      * Returns Request object
      * 
-     * @return \pinturicchio\http\Request
+     * @return \pinturicchio\system\http\Request
      */
     public function getRequest()
     {
@@ -79,7 +79,7 @@ abstract class Controller
      * Sets view renderer object
      * 
      * @param  object $view View renderer object
-     * @return \pinturicchio\Controller
+     * @return \pinturicchio\system\Controller
      */
     public function setView($view)
     {
@@ -90,7 +90,7 @@ abstract class Controller
     /**
      * Returns view object
      * 
-     * @return \pinturicchio\view\PhpRenderer
+     * @return \pinturicchio\components\view\PhpRenderer
      */
     public function getView()
     {

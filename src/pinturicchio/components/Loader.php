@@ -8,7 +8,7 @@
  */
 
 
-namespace pinturicchio;
+namespace pinturicchio\components;
 
 /**
  * Class loader
@@ -28,7 +28,7 @@ class Loader
      * Sets path
      * 
      * @param  string $path Path
-     * @return \pinturicchio\Loader
+     * @return pinturicchio\components\Loader
      */
     public function setPath($path)
     {
@@ -66,6 +66,6 @@ class Loader
         }
         
         // Nothing found - throw exception
-        throw new Exception('Class "' . $className . '" not found');
+        throw new \Exception('Class "' . $className . '" not found');
     }
 }

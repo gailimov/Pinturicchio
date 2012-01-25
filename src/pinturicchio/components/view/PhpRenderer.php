@@ -8,7 +8,7 @@
  */
 
 
-namespace pinturicchio\view;
+namespace pinturicchio\components\view;
 
 /**
  * PHP renderer
@@ -61,7 +61,7 @@ class PhpRenderer implements Renderer
      */
     public function __call($helper, array $args)
     {
-        $class = '\\pinturicchio\\view\\helpers\\' . ucfirst($helper);
+        $class = '\\pinturicchio\\components\\view\\helpers\\' . ucfirst($helper);
         $this->ensure(file_exists(__DIR__ . '/helpers/' . ucfirst($helper) . '.php'),
                       'View helper class "' . $class . '" not found');
         
@@ -72,7 +72,7 @@ class PhpRenderer implements Renderer
      * Sets options
      * 
      * @param  array $options Options
-     * @return \pinturicchio\PhpRenderer
+     * @return \pinturicchio\components\PhpRenderer
      */
     public function setOptions(array $options)
     {
@@ -89,7 +89,7 @@ class PhpRenderer implements Renderer
      * Sets directory
      * 
      * @param  string $directory Directory
-     * @return \pinturicchio\PhpRenderer
+     * @return \pinturicchio\components\PhpRenderer
      */
     public function setDirectory($directory)
     {
@@ -112,7 +112,7 @@ class PhpRenderer implements Renderer
      * Sets file extension
      * 
      * @param  string $fileExtension File extension
-     * @return \pinturicchio\PhpRenderer
+     * @return \pinturicchio\components\PhpRenderer
      */
     public function setFileExtension($fileExtension)
     {
@@ -134,7 +134,7 @@ class PhpRenderer implements Renderer
      * Sets layout directory
      * 
      * @param  string $directory Directory
-     * @return \pinturicchio\PhpRenderer
+     * @return \pinturicchio\components\PhpRenderer
      */
     public function setLayoutDirectory($directory)
     {
@@ -158,7 +158,7 @@ class PhpRenderer implements Renderer
      * Sets layout
      * 
      * @param  string $layout Layout
-     * @return \pinturicchio\PhpRenderer
+     * @return \pinturicchio\components\PhpRenderer
      */
     public function setLayout($layout)
     {
@@ -180,7 +180,7 @@ class PhpRenderer implements Renderer
      * Sets content key
      * 
      * @param  string $contentKey Content key
-     * @return \pinturicchio\PhpRenderer
+     * @return \pinturicchio\components\PhpRenderer
      */
     public function setContentKey($contentKey)
     {

@@ -8,7 +8,7 @@
  */
 
 
-namespace pinturicchio;
+namespace pinturicchio\components;
 
 /**
  * URL router
@@ -50,7 +50,7 @@ class Router
      * 
      * @param  string $name   Route scheme name
      * @param  array  $scheme Route scheme
-     * @return \pinturicchio\Router
+     * @return \pinturicchio\components\Router
      */
     public function addRoute($name, array $scheme)
     {
@@ -69,7 +69,7 @@ class Router
      *     ));
      * 
      * @param  array $routes Routes
-     * @return \pinturicchio\Router
+     * @return \pinturicchio\components\Router
      */
     public function addRoutes(array $routes)
     {

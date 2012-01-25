@@ -8,7 +8,7 @@
  */
 
 
-namespace pinturicchio\http;
+namespace pinturicchio\system\http;
 
 /**
  * HTTP request class

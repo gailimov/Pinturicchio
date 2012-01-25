@@ -8,10 +8,10 @@
  */
 
 
-namespace pinturicchio;
+namespace pinturicchio\components\view;
 
 /**
- * Exception
+ * View exception
  * 
  * @author Kanat Gailimov <gailimov@gmail.com>
  */

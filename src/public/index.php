@@ -2,11 +2,11 @@
 
 error_reporting(E_ALL | E_STRICT);
 
-require_once __DIR__ . '/../pinturicchio/Loader.php';
+require_once __DIR__ . '/../pinturicchio/components/Loader.php';
 
-use pinturicchio\Loader,
-    pinturicchio\Registry,
-    pinturicchio\FrontController;
+use pinturicchio\components\Loader,
+    pinturicchio\components\Registry,
+    pinturicchio\system\FrontController;
 
 $loader = new Loader();
 $loader->setPath(__DIR__ . '/..')

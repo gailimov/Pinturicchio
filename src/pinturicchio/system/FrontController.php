@@ -8,11 +8,14 @@
  */
 
 
-namespace pinturicchio;
+namespace pinturicchio\system;
 
-use pinturicchio\http\Request,
-    pinturicchio\view\Renderer,
-    pinturicchio\view\PhpRenderer;
+use pinturicchio\system\http\Request,
+    pinturicchio\components\Registry,
+    pinturicchio\components\Config,
+    pinturicchio\components\Router,
+    pinturicchio\components\view\Renderer,
+    pinturicchio\components\view\PhpRenderer;
 
 /**
  * Front controller
@@ -39,14 +42,14 @@ class FrontController
     /**
      * Singleton instance
      *
-     * @var \pinturicchio\FrontController
+     * @var pinturicchio\system\FrontController
      */
     private static $_instance;
     
     /**
      * \pinturicchio\Config
      * 
-     * @var \pinturicchio\Config
+     * @var \pinturicchio\components\Config
      */
     private $_config;
     
@@ -60,7 +63,7 @@ class FrontController
     /**
      * Router instance
      * 
-     * @var \pinturicchio\Router
+     * @var \pinturicchio\components\Router
      */
     private $_router;
     
@@ -86,7 +89,7 @@ class FrontController
     private $_controllersDirectory = 'controllers';
     
     /**
-     * @var \pinturicchio\view\Renderer
+     * @var \pinturicchio\components\view\Renderer
      */
     private $_viewRenderer;
     
@@ -111,7 +114,7 @@ class FrontController
     /**
      * Returns singleton instance
      * 
-     * @return \pinturicchio\FrontController
+     * @return \pinturicchio\system\FrontController
      */
     public static function getInstance()
     {
@@ -135,7 +138,7 @@ class FrontController
      * Sets controllers directory
      * 
      * @param  string $directory Directory
-     * @return \pinturicchio\FrontController
+     * @return \pinturicchio\system\FrontController
      */
     public function setControllersDirectory($directory)
     {
@@ -158,8 +161,8 @@ class FrontController
     /**
      * Set view renderer object
      * 
-     * @param  \pinturicchio\view\Renderer $viewRenderer
-     * @return \pinturicchio\FrontController
+     * @param  \pinturicchio\components\view\Renderer $viewRenderer
+     * @return \pinturicchio\system\FrontController
      */
     public function setViewRenderer(Renderer $viewRenderer)
     {
@@ -170,7 +173,7 @@ class FrontController
     /**
      * Returns view renderer object
      * 
-     * @return \pinturicchio\view\Renderer
+     * @return \pinturicchio\components\view\Renderer
      */
     public function getViewRenderer()
     {
@@ -180,7 +183,7 @@ class FrontController
     /**
      * Returns router object
      * 
-     * @return \pinturicchio\Router
+     * @return \pinturicchio\components\Router
      */
     public function getRouter()
     {
