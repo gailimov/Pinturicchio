@@ -15,6 +15,8 @@ use pinturicchio\system\FrontController;
 /**
  * URL helper
  * 
+ * @TODO Вынести в system
+ * 
  * @author Kanat Gailimov <gailimov@gmail.com>
  */
 class Url

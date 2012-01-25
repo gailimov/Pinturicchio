@@ -55,6 +55,8 @@ class PhpRenderer implements Renderer
     /**
      * Invokes helper magically
      * 
+     * @TODO Добавить возможность юзать кастомные хелперы (т.е. определяемые юзерами)
+     * 
      * @param  string $helper Helper name
      * @param  array  $args   Argumants
      * @return string Output result of helper

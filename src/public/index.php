@@ -2,9 +2,9 @@
 
 error_reporting(E_ALL | E_STRICT);
 
-require_once __DIR__ . '/../pinturicchio/components/Loader.php';
+require_once __DIR__ . '/../pinturicchio/components/loader/Loader.php';
 
-use pinturicchio\components\Loader,
+use pinturicchio\components\loader\Loader,
     pinturicchio\components\Registry,
     pinturicchio\system\FrontController;
 

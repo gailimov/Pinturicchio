@@ -13,6 +13,13 @@ namespace pinturicchio\components;
 /**
  * Registry
  * 
+ * Usage example:
+ * 
+ *     // Sets value in to the registry
+ *     Registry::set('rootPath', __DIR__);
+ *     // Gets value from the registry (null if there is nothing)
+ *     Registry::get('rootPath');
+ * 
  * @author Kanat Gailimov <gailimov@gmail.com>
  */
 class Registry

@@ -8,7 +8,7 @@
  */
 
 
-namespace pinturicchio\components\view;
+namespace pinturicchio\components\loader;
 
 /**
  * Exception

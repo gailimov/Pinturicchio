@@ -8,10 +8,17 @@
  */
 
 
-namespace pinturicchio\components;
+namespace pinturicchio\components\loader;
 
 /**
  * Class loader
+ * 
+ * Usage example:
+ * 
+ *     $loader = new Loader();
+ *     $loader->setPath(__DIR__)
+ *            ->setPath(__DIR__ . '/vendors')
+ *            ->registerAutoload();
  * 
  * @author Kanat Gailimov <gailimov@gmail.com>
  */
@@ -66,6 +73,7 @@ class Loader
         }
         
         // Nothing found - throw exception
-        throw new \Exception('Class "' . $className . '" not found');
+        require_once 'Exception.php';
+        throw new Exception('Class "' . $className . '" not found');
     }
 }

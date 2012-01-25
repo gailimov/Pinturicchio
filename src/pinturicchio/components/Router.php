@@ -13,6 +13,8 @@ namespace pinturicchio\components;
 /**
  * URL router
  * 
+ * @TODO Сделать более юзабельным в качестве компонента (match(), assemble(), etc)
+ * 
  * @author Kanat Gailimov <gailimov@gmail.com>
  */
 class Router
@@ -181,6 +183,7 @@ class Router
         }
         
         // Nothing matched - throw exception
+        /** @TODO Придумать что-нибудь получше */
         throw new NotFoundException('404 Not Found');
     }
     
