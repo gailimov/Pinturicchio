@@ -27,14 +27,14 @@ class FrontController
     const ALIAS_SEPARATOR = '.';
     
     /**
-     * Action postfix
-     */
-    const ACTION_POSTFIX = 'Action';
-    
-    /**
      * Key of the views config
      */
     const CONFIG_VIEWS_KEY = 'views';
+    
+    /**
+     * Action postfix
+     */
+    const ACTION_POSTFIX = 'Action';
     
     /**
      * Singleton instance
@@ -42,6 +42,13 @@ class FrontController
      * @var \pinturicchio\FrontController
      */
     private static $_instance;
+    
+    /**
+     * \pinturicchio\Config
+     * 
+     * @var \pinturicchio\Config
+     */
+    private $_config;
     
     /**
      * Aliases
@@ -58,6 +65,20 @@ class FrontController
     private $_router;
     
     /**
+     * Config directory
+     * 
+     * @var string
+     */
+    private $_configDirectory = 'config';
+    
+    /**
+     * Default config filename
+     * 
+     * @var string
+     */
+    private $_configName = 'main';
+    
+    /**
      * Controllers directory
      * 
      * @var string
@@ -71,10 +92,13 @@ class FrontController
     
     private function __construct()
     {
+        // Initialization of config
+        $this->initConfig();
+        
         $this->_aliases['app'] = Registry::get('appPath');
         
-        if (isset(Config::getInstance()->params['controllersDirectory']))
-            $this->setControllersDirectory(Config::getInstance()->params['controllersDirectory']);
+        if (isset($this->_config->controllersDirectory))
+            $this->setControllersDirectory($this->_config->controllersDirectory);
         
         // Initialization of view
         $this->initView();
@@ -94,6 +118,17 @@ class FrontController
         if (!self::$_instance)
             self::$_instance = new self();
         return self::$_instance;
+    }
+    
+    /**
+     * Initializes config
+     * 
+     * @return void
+     */
+    public function initConfig()
+    {
+        $config = Registry::get('appPath') . '/' . $this->_configDirectory . '/' . $this->_configName . '.php';
+        $this->_config = new Config(require_once $config);
     }
     
     /**
@@ -178,7 +213,9 @@ class FrontController
         } else if (($pos = strpos($alias, '.')) !== false) {
             $rootAlias = substr($alias, 0, $pos);
             if (isset($this->_aliases[$rootAlias])) {
-                return $this->_aliases[$alias] = rtrim($this->_aliases[$rootAlias] . '/' . str_replace('.', '/', substr($alias, $pos + 1)), '*'. '/');
+                return $this->_aliases[$alias] = rtrim(
+                    $this->_aliases[$rootAlias] . '/' . str_replace('.', '/', substr($alias, $pos + 1)), '*'. '/'
+                );
             }
         }
         
@@ -192,14 +229,14 @@ class FrontController
      */
     public function initView()
     {
-        if (isset(Config::getInstance()->params['viewRenderer'])) {
-            $viewRenderer = $this->createClassNameFromAlias(Config::getInstance()->params['viewRenderer']);
+        if (isset($this->_config->viewRenderer)) {
+            $viewRenderer = $this->createClassNameFromAlias($this->_config->viewRenderer);
             $this->setViewRenderer(new $viewRenderer());
         } else {
             $this->setViewRenderer(new PhpRenderer());
             // Set the properties values from config if it's exists, otherwise set default values
-            if (isset(Config::getInstance()->params[self::CONFIG_VIEWS_KEY])) {
-                $config = Config::getInstance()->params[self::CONFIG_VIEWS_KEY];
+            if (isset($this->_config->{self::CONFIG_VIEWS_KEY})) {
+                $config = $this->_config->{self::CONFIG_VIEWS_KEY};
                 if (isset($config['directory']))
                     $config['directory'] = $this->getPathOfAlias($config['directory']);
                 else
@@ -227,7 +264,7 @@ class FrontController
      */
     public function dispatch()
     {
-        $options = $this->getRouter()->addRoutes(Config::getInstance()->params['routes'])->run();
+        $options = $this->getRouter()->addRoutes($this->_config->routes->toArray())->run();
         
         $class = '\\app\\' . $this->getControllersDirectory() . '\\' . $options['controller'];
         

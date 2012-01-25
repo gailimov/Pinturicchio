@@ -65,7 +65,7 @@ class PhpRenderer implements Renderer
         $this->ensure(file_exists(__DIR__ . '/helpers/' . ucfirst($helper) . '.php'),
                       'View helper class "' . $class . '" not found');
         
-        return call_user_func_array(array($class, $helper), $args);
+        return call_user_func_array(array(new $class, $helper), $args);
     }
     
     /**

@@ -18,54 +18,78 @@ namespace pinturicchio;
 class Config
 {
     /**
-     * Default config filename
-     */
-    const DEFAULT_CONFIG = 'main';
-    
-    /**
-     * Params
+     * Data
      * 
      * @var array
      */
-    public $params = array();
-    
-    /**
-     * Directory
-     * 
-     * @var string
-     */
-    private $_directory = 'config';
-    
-    /**
-     * Singleton instance
-     * 
-     * @var \pinturicchio\Config
-     */
-    private static $_instance;
+    private $_data = array();
     
     /**
      * Constructor
      * 
-     * @param string $config Config file
+     * @param array $array Array
      */
-    private function __construct($config)
+    public function __construct(array $array)
     {
-        $file = Registry::get('appPath') . '/' . $this->_directory . '/' . $config . '.php';
-        if (!file_exists($file))
-            throw new Exception('Config file "' . $file . '" not found');
-        $this->params = require $file;
+        foreach ($array as $key => $value) {
+            if (is_array($value))
+                $this->_data[$key] = new self($value);
+            else
+                $this->_data[$key] = $value;
+        }
     }
     
     /**
-     * Returns singleton instance
+     * Magically returns value by key
      * 
-     * @param  string $config Config file
-     * @return \pinturicchio\Config
+     * @param  string $key Key
+     * @return mixed
      */
-    public static function getInstance($config = self::DEFAULT_CONFIG)
+    public function __get($key)
     {
-        if (!self::$_instance)
-            self::$_instance = new self((string) $config);
-        return self::$_instance;
+        return $this->get($key);
+    }
+    
+    /**
+     * Magic isset()
+     * 
+     * @param  string $key Key
+     * @return bool
+     */
+    public function __isset($key)
+    {
+        return isset($this->_data[$key]);
+    }
+    
+    /**
+     * Returns value by key
+     * 
+     * @param  string $key Key
+     * @return mixed
+     */
+    public function get($key)
+    {
+        if (array_key_exists($key, $this->_data))
+            return $this->_data[(string) $key];
+        return null;
+    }
+    
+    /**
+     * Returns array of stored data
+     * 
+     * @return array
+     */
+    public function toArray()
+    {
+        $array = array();
+        
+        foreach ($this->_data as $key => $value) {
+            if ($value instanceof self)
+                $array[$key] = $value->toArray();
+            else
+                $array[$key] = $value;
+        }
+        
+        return $array;
     }
 }
