@@ -11,9 +11,9 @@
 namespace pinturicchio\system;
 
 use pinturicchio\system\http\Request,
-    pinturicchio\components\Registry,
     pinturicchio\components\Config,
     pinturicchio\components\Router,
+    pinturicchio\components\loader\Loader,
     pinturicchio\components\view\Renderer,
     pinturicchio\components\view\PhpRenderer;
 
@@ -24,6 +24,11 @@ use pinturicchio\system\http\Request,
  */
 class FrontController
 {
+    /**
+     * Default app namespace
+     */
+    const DEFAULT_APP_NAMESPACE = 'app';
+    
     /**
      * Alias separator
      */
@@ -73,20 +78,6 @@ class FrontController
     private $_router;
     
     /**
-     * Config directory
-     * 
-     * @var string
-     */
-    private $_configDirectory = 'config';
-    
-    /**
-     * Default config filename
-     * 
-     * @var string
-     */
-    private $_configName = 'main';
-    
-    /**
      * Controllers directory
      * 
      * @var string
@@ -100,17 +91,6 @@ class FrontController
     
     private function __construct()
     {
-        // Initialization of config
-        $this->initConfig();
-        
-        $this->_aliases['app'] = realpath(Registry::get('appPath'));
-        $this->_aliases['system'] = __DIR__;
-        
-        if (isset($this->_config->controllersDirectory))
-            $this->setControllersDirectory($this->_config->controllersDirectory);
-        
-        // Initialization of view
-        $this->initView();
     }
     
     private function __clone()
@@ -130,14 +110,62 @@ class FrontController
     }
     
     /**
+     * Running
+     * 
+     * @param  string $config Config file
+     * @return void
+     */
+    public function run($config)
+    {
+        // Initialization of loader
+        $this->initLoader();
+        
+        // Initialization of config
+        $this->initConfig($config);
+        
+        // Setting aliases
+        $this->_aliases['app'] = $this->_config->basePath;
+        $this->_aliases['system'] = __DIR__;
+        
+        if (isset($this->_config->controllersDirectory))
+            $this->setControllersDirectory($this->_config->controllersDirectory);
+        
+        // Initialization of view
+        $this->initView();
+        
+        // Dispatching
+        $this->dispatch();
+    }
+    
+    /**
+     * Initializes loader
+     * 
+     * @return void
+     */
+    public function initLoader()
+    {
+        require_once __DIR__ . '/../components/loader/Loader.php';
+        $loader = new Loader();
+        $loader->setPath(__DIR__ . '/../..')
+               ->registerAutoload();
+    }
+    
+    /**
      * Initializes config
      * 
      * @return void
      */
-    public function initConfig()
+    public function initConfig($config)
     {
-        $config = Registry::get('appPath') . '/' . $this->_configDirectory . '/' . $this->_configName . '.php';
+        if (!file_exists($config))
+            throw new Exception('Config file "' . $config . '" not found');
         $this->_config = new Config(require_once $config);
+        if (!isset($this->_config->basePath))
+            $this->_config->basePath = __DIR__ . '/../../' . self::DEFAULT_APP_NAMESPACE;
+        elseif (!is_dir($this->_config->basePath))
+            throw new Exception('"' . $this->_config->basePath . '" is not a valid application path');
+        if (!isset($this->_config->namespace))
+            $this->_config->namespace = self::DEFAULT_APP_NAMESPACE;
     }
     
     /**
@@ -148,7 +176,7 @@ class FrontController
      */
     public function setControllersDirectory($directory)
     {
-        if (!is_dir(Registry::get('appPath') . '/' . (string) $directory))
+        if (!is_dir($this->_config->basePath . '/' . (string) $directory))
             throw new Exception('"' . $directory . '" is not a valid controllers directory');
         $this->_controllersDirectory = $directory;
         return $this;
@@ -251,13 +279,15 @@ class FrontController
                 if (isset($config['directory']))
                     $array['directory'] = $this->getPathOfAlias($config['directory']);
                 else
-                    $array['directory'] = Registry::get('appPath') . '/views';
+                    $array['directory'] = $this->_config->basePath . '/views';
                 // Setting helpers options
-                if (isset($config['helpersOptions']))
+                if (isset($config['helpersOptions'])) {
                     $array['helpersOptions']['app']['directory'] = $this->getPathOfAlias($config['helpersOptions']['directory']);
-                else
-                    $array['helpersOptions']['app']['directory'] = $this->getPathOfAlias('app.views.helpers');
-                $array['helpersOptions']['app']['namespace'] = 'app\views\helpers';
+                    $array['helpersOptions']['app']['namespace'] = $this->createClassNameFromAlias($config['helpersOptions']['directory']);
+                } else {
+                    $array['helpersOptions']['app']['directory'] = $this->getPathOfAlias($this->_config->namespace . '.views.helpers');
+                    $array['helpersOptions']['app']['namespace'] = $this->_config->namespace . '\views\helpers';
+                }
                 $array['helpersOptions']['system']['directory'] = $this->getPathOfAlias('system.view.helpers');
                 $array['helpersOptions']['system']['namespace'] = 'pinturicchio\system\view\helpers';
                 // For moving 'directory' before 'layoutsDirectory'
@@ -265,15 +295,15 @@ class FrontController
                 $this->setOptions($this->getViewRenderer(), $config);
             } else {
                 $this->getViewRenderer()->setOptions(array(
-                    'directory' => Registry::get('appPath') . '/views',
+                    'directory' => $this->_config->basePath . '/views',
                     'layoutDirectory' => 'layouts',
                     'layout' => 'main',
                     'fileExtension' => '.php',
                     'contentKey' => 'content',
                     'helpersOptions' => array(
                         'app' => array(
-                            'directory' => $this->getPathOfAlias('app.views.helpers'),
-                            'namespace' => 'app\views\helpers'
+                            'directory' => $this->getPathOfAlias($this->_config->namespace . '.views.helpers'),
+                            'namespace' => $this->_config->namespace . '\views\helpers'
                         ),
                         'system' => array(
                             'directory' => $this->getPathOfAlias('system.view.helpers'),
@@ -294,9 +324,9 @@ class FrontController
     {
         $options = $this->getRouter()->addRoutes($this->_config->{self::CONFIG_ROUTES_KEY}->toArray())->run();
         
-        $class = '\\app\\' . $this->getControllersDirectory() . '\\' . $options['controller'];
+        $class = '\\' . $this->_config->namespace . '\\' . $this->getControllersDirectory() . '\\' . $options['controller'];
         
-        if (!file_exists(Registry::get('rootPath') . str_replace('\\', '/', $class) . '.php'))
+        if (!file_exists($this->_config->basePath . '/' . $this->getControllersDirectory() . '/' . $options['controller'] . '.php'))
             throw new Exception('Controller class "' . $class . '" not found');
         
         $obj = new $class(new Request($options));

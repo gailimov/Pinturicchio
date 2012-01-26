@@ -1,6 +1,8 @@
 <?php
 
 return array(
+    //'basePath' => __DIR__ . '/../../app',
+    //'namespace' => 'app',
     //'controllersDirectory' => 'controllers',
     //'viewRenderer' => 'app.components.ViewRenderer',
     
@@ -11,8 +13,7 @@ return array(
         'fileExtension' => '.php',
         'contentKey' => 'content',
         'helpersOptions' => array(
-            'directory' => 'app.views.helpers',
-            'namespace' => 'app\views\helpers'
+            'directory' => 'app.views.helpers'
         )
     ),*/
     

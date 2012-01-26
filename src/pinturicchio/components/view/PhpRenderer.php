@@ -84,6 +84,8 @@ class PhpRenderer implements Renderer
     public function __call($helper, array $args)
     {
         foreach ($this->_helpersOptions as $key => $value) {
+            if ($value['namespace'][0] == '\\')
+                $value['namespace'] = substr($value['namespace'], 1);
             $class = '\\' . $value['namespace'] . '\\' . ucfirst($helper);
             if (file_exists($value['directory'] . '/' . ucfirst($helper) . '.php'))
                 return call_user_func_array(array(new $class, $helper), $args);
@@ -225,6 +227,16 @@ class PhpRenderer implements Renderer
     
     /**
      * Sets helpers options
+     * 
+     * Usage example:
+     * 
+     *     $renderer->setHelpersOptions(array(
+     *         // Don't call array as "default", this reserved name
+     *         'app' => array(
+     *             'directory' => __DIR__ . '/views/helpers',
+     *             'namespace' => 'app\views\helpers'
+     *         )
+     *     ));
      * 
      * @param  array $options Options
      * @return \pinturicchio\components\PhpRenderer
