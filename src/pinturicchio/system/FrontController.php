@@ -35,6 +35,11 @@ class FrontController
     const CONFIG_VIEWS_KEY = 'views';
     
     /**
+     * Key of the routes config
+     */
+    const CONFIG_ROUTES_KEY = 'routes';
+    
+    /**
      * Action postfix
      */
     const ACTION_POSTFIX = 'Action';
@@ -240,13 +245,13 @@ class FrontController
             // Set the properties values from config if it's exists, otherwise set default values
             if (isset($this->_config->{self::CONFIG_VIEWS_KEY})) {
                 $config = $this->_config->{self::CONFIG_VIEWS_KEY};
+                $array = array();
                 if (isset($config['directory']))
-                    $config['directory'] = $this->getPathOfAlias($config['directory']);
+                    $array['directory'] = $this->getPathOfAlias($config['directory']);
                 else
-                    $config['directory'] = Registry::get('appPath') . '/views';
-                // For moving 'directory' before 'layoutsDirectory'. Yes, it's sucks
-                /** @TODO Think of something better */
-                asort($config);
+                    $array['directory'] = Registry::get('appPath') . '/views';
+                // For moving 'directory' before 'layoutsDirectory'
+                $config = $array + $config->toArray();
                 $this->setOptions($this->getViewRenderer(), $config);
             } else {
                 $this->getViewRenderer()->setOptions(array(
@@ -267,7 +272,7 @@ class FrontController
      */
     public function dispatch()
     {
-        $options = $this->getRouter()->addRoutes($this->_config->routes->toArray())->run();
+        $options = $this->getRouter()->addRoutes($this->_config->{self::CONFIG_ROUTES_KEY}->toArray())->run();
         
         $class = '\\app\\' . $this->getControllersDirectory() . '\\' . $options['controller'];
         
