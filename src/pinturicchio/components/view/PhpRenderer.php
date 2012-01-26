@@ -18,6 +18,11 @@ namespace pinturicchio\components\view;
 class PhpRenderer implements Renderer
 {
     /**
+     * Helpers directory
+     */
+    const HELPERS_DIRECTORY = 'helpers';
+    
+    /**
      * Directory
      * 
      * @var string
@@ -53,9 +58,24 @@ class PhpRenderer implements Renderer
     private $_contentKey = 'content';
     
     /**
-     * Invokes helper magically
+     * Helper options
      * 
-     * @TODO Добавить возможность юзать кастомные хелперы (т.е. определяемые юзерами)
+     * @var array
+     */
+    private $_helpersOptions = array();
+    
+    public function __construct()
+    {
+        $this->_helpersOptions = array(
+            'default' => array(
+                'directory' => __DIR__ . '/' . self::HELPERS_DIRECTORY,
+                'namespace' => __NAMESPACE__ . '\\' . self::HELPERS_DIRECTORY
+            )
+        );
+    }
+    
+    /**
+     * Invokes helper magically
      * 
      * @param  string $helper Helper name
      * @param  array  $args   Argumants
@@ -63,11 +83,14 @@ class PhpRenderer implements Renderer
      */
     public function __call($helper, array $args)
     {
-        $class = '\\pinturicchio\\components\\view\\helpers\\' . ucfirst($helper);
-        $this->ensure(file_exists(__DIR__ . '/helpers/' . ucfirst($helper) . '.php'),
-                      'View helper class "' . $class . '" not found');
+        foreach ($this->_helpersOptions as $key => $value) {
+            $class = '\\' . $value['namespace'] . '\\' . ucfirst($helper);
+            if (file_exists($value['directory'] . '/' . ucfirst($helper) . '.php'))
+                return call_user_func_array(array(new $class, $helper), $args);
+        }
         
-        return call_user_func_array(array(new $class, $helper), $args);
+        // Helper not found - throws exception
+        throw new Exception('View helper "' . ucfirst($helper) . '" not found');
     }
     
     /**
@@ -198,6 +221,24 @@ class PhpRenderer implements Renderer
     public function getContentKey()
     {
         return $this->_contentKey;
+    }
+    
+    /**
+     * Sets helpers options
+     * 
+     * @param  array $options Options
+     * @return \pinturicchio\components\PhpRenderer
+     */
+    public function setHelpersOptions(array $options)
+    {
+        foreach ($options as $key => $value) {
+            $this->ensure(is_dir((string) $value['directory']),
+                          '"' . $value['directory'] . '" is not a valid helpers directory');
+        }
+        
+        $this->_helpersOptions = array_merge($options, $this->_helpersOptions);
+        
+        return $this;
     }
     
     /**

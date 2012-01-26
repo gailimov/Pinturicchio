@@ -103,7 +103,8 @@ class FrontController
         // Initialization of config
         $this->initConfig();
         
-        $this->_aliases['app'] = Registry::get('appPath');
+        $this->_aliases['app'] = realpath(Registry::get('appPath'));
+        $this->_aliases['system'] = __DIR__;
         
         if (isset($this->_config->controllersDirectory))
             $this->setControllersDirectory($this->_config->controllersDirectory);
@@ -246,10 +247,19 @@ class FrontController
             if (isset($this->_config->{self::CONFIG_VIEWS_KEY})) {
                 $config = $this->_config->{self::CONFIG_VIEWS_KEY};
                 $array = array();
+                // Setting directory
                 if (isset($config['directory']))
                     $array['directory'] = $this->getPathOfAlias($config['directory']);
                 else
                     $array['directory'] = Registry::get('appPath') . '/views';
+                // Setting helpers options
+                if (isset($config['helpersOptions']))
+                    $array['helpersOptions']['app']['directory'] = $this->getPathOfAlias($config['helpersOptions']['directory']);
+                else
+                    $array['helpersOptions']['app']['directory'] = $this->getPathOfAlias('app.views.helpers');
+                $array['helpersOptions']['app']['namespace'] = 'app\views\helpers';
+                $array['helpersOptions']['system']['directory'] = $this->getPathOfAlias('system.view.helpers');
+                $array['helpersOptions']['system']['namespace'] = 'pinturicchio\system\view\helpers';
                 // For moving 'directory' before 'layoutsDirectory'
                 $config = $array + $config->toArray();
                 $this->setOptions($this->getViewRenderer(), $config);
@@ -259,7 +269,17 @@ class FrontController
                     'layoutDirectory' => 'layouts',
                     'layout' => 'main',
                     'fileExtension' => '.php',
-                    'contentKey' => 'content'
+                    'contentKey' => 'content',
+                    'helpersOptions' => array(
+                        'app' => array(
+                            'directory' => $this->getPathOfAlias('app.views.helpers'),
+                            'namespace' => 'app\views\helpers'
+                        ),
+                        'system' => array(
+                            'directory' => $this->getPathOfAlias('system.view.helpers'),
+                            'namespace' => 'pinturicchio\system\view\helpers'
+                        )
+                    )
                 ));
             }
         }

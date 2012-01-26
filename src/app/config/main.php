@@ -9,7 +9,11 @@ return array(
         'layoutDirectory' => 'layouts',
         'layout' => 'main',
         'fileExtension' => '.php',
-        'contentKey' => 'content'
+        'contentKey' => 'content',
+        'helpersOptions' => array(
+            'directory' => 'app.views.helpers',
+            'namespace' => 'app\views\helpers'
+        )
     ),*/
     
     'routes' => array(
