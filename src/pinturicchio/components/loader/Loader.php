@@ -10,6 +10,8 @@
 
 namespace pinturicchio\components\loader;
 
+require_once 'SplLoader.php';
+
 /**
  * Class loader
  * 
@@ -22,7 +24,7 @@ namespace pinturicchio\components\loader;
  * 
  * @author Kanat Gailimov <gailimov@gmail.com>
  */
-class Loader
+class Loader extends SplLoader
 {
     /**
      * Paths
@@ -60,7 +62,7 @@ class Loader
      * @param  string $className Class name
      * @return bool true if success
      */
-    private function load($className)
+    protected function load($className)
     {
         $pathToClass = str_replace('\\', '/', $className);
         
