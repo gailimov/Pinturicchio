@@ -56,7 +56,7 @@ class ClassMapLoader extends SplLoader
         foreach ($map as $class => $file) {
             if ($class[0] == '\\')
                 $class = substr($class, 1);
-            if (!array_key_exists($class, $this->_map))
+            if (!isset($this->_map[$class]))
                 $this->_map[$class] = $file;
         }
         
@@ -77,15 +77,13 @@ class ClassMapLoader extends SplLoader
      * Loads class
      * 
      * @param  string $className Class name
-     * @return bool true if success
+     * @return void
      */
     protected function load($className)
     {
-        foreach ($this->_map as $class => $file) {
-            if ($className == $class) {
-                require_once $file;
-                return true;
-            }
+        if (isset($this->_map[$className])) {
+            require_once $this->_map[$className];
+            return;
         }
         
         // Nothing found - throw exception

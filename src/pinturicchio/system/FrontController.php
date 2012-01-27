@@ -11,6 +11,7 @@
 namespace pinturicchio\system;
 
 use pinturicchio\system\http\Request,
+    pinturicchio\system\loader\Loader as SystemLoader,
     pinturicchio\components\Config,
     pinturicchio\components\Router,
     pinturicchio\components\loader\Loader,
@@ -28,6 +29,11 @@ class FrontController
      * Default app namespace
      */
     const DEFAULT_APP_NAMESPACE = 'app';
+    
+    /**
+     * Default autoload flag
+     */
+    const DEFAULT_AUTOLOAD_FLAG = true;
     
     /**
      * Alias separator
@@ -57,7 +63,7 @@ class FrontController
     private static $_instance;
     
     /**
-     * \pinturicchio\Config
+     * \pinturicchio\components\Config
      * 
      * @var \pinturicchio\components\Config
      */
@@ -117,15 +123,15 @@ class FrontController
      */
     public function run($config)
     {
-        // Initialization of loader
-        $this->initLoader();
-        
         // Initialization of config
         $this->initConfig($config);
         
         // Setting aliases
         $this->_aliases['app'] = $this->_config->basePath;
         $this->_aliases['system'] = __DIR__;
+        
+        // Initialization of loader
+        $this->initLoader();
         
         if (isset($this->_config->controllersDirectory))
             $this->setControllersDirectory($this->_config->controllersDirectory);
@@ -138,19 +144,6 @@ class FrontController
     }
     
     /**
-     * Initializes loader
-     * 
-     * @return void
-     */
-    public function initLoader()
-    {
-        require_once __DIR__ . '/../components/loader/Loader.php';
-        $loader = new Loader();
-        $loader->setPath(__DIR__ . '/../..')
-               ->registerAutoload();
-    }
-    
-    /**
      * Initializes config
      * 
      * @return void
@@ -159,6 +152,7 @@ class FrontController
     {
         if (!file_exists($config))
             throw new Exception('Config file "' . $config . '" not found');
+        require_once __DIR__ . '/../components/Config.php';
         $this->_config = new Config(require_once $config);
         if (!isset($this->_config->basePath))
             $this->_config->basePath = __DIR__ . '/../../' . self::DEFAULT_APP_NAMESPACE;
@@ -166,6 +160,34 @@ class FrontController
             throw new Exception('"' . $this->_config->basePath . '" is not a valid application path');
         if (!isset($this->_config->namespace))
             $this->_config->namespace = self::DEFAULT_APP_NAMESPACE;
+        if (!isset($this->_config->autoload))
+            $this->_config->autoload = self::DEFAULT_AUTOLOAD_FLAG;
+    }
+    
+    /**
+     * Initializes loader
+     * 
+     * @return void
+     */
+    public function initLoader()
+    {
+        if ($this->_config->autoload) {
+            require_once __DIR__ . '/../components/loader/Loader.php';
+            $loader = new Loader();
+            $loader->setPath(__DIR__ . '/../..')
+                   ->registerAutoload();
+        } else {
+            require_once __DIR__ . '/loader/Loader.php';
+            $map = array();
+            if (isset($this->_config->import)) {
+                foreach ($this->_config->import->toArray() as $import)
+                    $map += array($this->createClassNameFromAlias($import) => $this->getPathOfAlias($import) . '.php');
+            }
+            $loader = new SystemLoader();
+            $loader->setPath(realpath(__DIR__ . '/../..'))
+                   ->addAppClassMap($map)
+                   ->registerAutoload();
+        }
     }
     
     /**
@@ -251,7 +273,7 @@ class FrontController
             $rootAlias = substr($alias, 0, $pos);
             if (isset($this->_aliases[$rootAlias])) {
                 return $this->_aliases[$alias] = rtrim(
-                    $this->_aliases[$rootAlias] . '/' . str_replace('.', '/', substr($alias, $pos + 1)), '*'. '/'
+                    $this->_aliases[$rootAlias] . '/' . str_replace('.', '/', substr($alias, $pos + 1)), '*/'
                 );
             }
         }

@@ -60,7 +60,7 @@ class Loader extends SplLoader
      * Loads class
      * 
      * @param  string $className Class name
-     * @return bool true if success
+     * @return void
      */
     protected function load($className)
     {
@@ -70,7 +70,7 @@ class Loader extends SplLoader
             $file = $path . '/' . $pathToClass . '.php';
             if (file_exists($file)) {
                 require_once $file;
-                return true;
+                return;
             }
         }
         

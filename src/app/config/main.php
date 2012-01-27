@@ -5,6 +5,11 @@ return array(
     //'namespace' => 'app',
     //'controllersDirectory' => 'controllers',
     //'viewRenderer' => 'app.components.ViewRenderer',
+    //'autoload' => false,
+    
+    /*'import' => array(
+        'app.controllers.Site'
+    ),*/
     
     /*'views' => array(
         'directory' => 'app.views',

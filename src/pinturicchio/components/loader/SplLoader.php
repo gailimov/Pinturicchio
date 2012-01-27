@@ -28,7 +28,7 @@ abstract class SplLoader
      * Loads class
      * 
      * @param  string $className Class name
-     * @return bool true if success
+     * @return void
      */
     abstract protected function load($className);
 }
